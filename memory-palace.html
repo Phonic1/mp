@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Memory Palace • Quantum Edition</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+:root {
+  --bg: #000000;
+  --bg-gradient: radial-gradient(ellipse at top, #1a1410 0%, #000000 50%);
+  --card: rgba(26, 20, 16, 0.5);
+  --card-hover: rgba(26, 20, 16, 0.7);
+  --accent: #d4895f;
+  --accent-bright: #f4a460;
+  --accent-glow: rgba(244, 164, 96, 0.2);
+  --text: #f5f1e8;
+  --text-muted: #b8a890;
+  --border: rgba(212, 137, 95, 0.15);
+  --glass: rgba(245, 241, 232, 0.03);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-gradient);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  touch-action: pan-y;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 20% 50%, rgba(212, 137, 95, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(244, 164, 96, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+.header {
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(20px);
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.breadcrumb {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.breadcrumb-link {
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.breadcrumb-link:hover {
+  color: var(--accent-bright);
+}
+
+/* Main Content */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+/* Universe View */
+.universe-title {
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+}
+
+.universe-subtitle {
+  text-align: center;
+  color: var(--text-muted);
+  margin-bottom: 2.5rem;
+  font-size: 0.95rem;
+}
+
+.palaces-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.palace-card {
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.75rem;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.palace-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+
+.palace-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: var(--accent-bright);
+  background: var(--card-hover);
+  box-shadow: 0 12px 40px rgba(244, 164, 96, 0.15), 0 0 60px rgba(212, 137, 95, 0.08);
+}
+
+.palace-card:hover::before {
+  transform: scaleX(1);
+}
+
+.palace-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.palace-name {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.palace-description {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.palace-stats {
+  display: flex;
+  gap: 1rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 1rem;
+}
+
+.category-input {
+  width: 100%;
+  padding: 0.75rem;
+  margin: 1rem 0;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: all 0.3s;
+}
+
+.category-input:focus {
+  outline: none;
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.category-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.btn-enter-palace {
+  width: 100%;
+  padding: 0.875rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+  color: var(--text);
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  margin-top: 0.5rem;
+}
+
+.btn-enter-palace:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(212, 137, 95, 0.4);
+}
+
+/* Palace View */
+.palace-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.palace-header-icon {
+  font-size: 3.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.palace-header-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+}
+
+.palace-header-meta {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+  color: var(--text);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 137, 95, 0.4);
+}
+
+.locations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.location-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  position: relative;
+}
+
+.location-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.location-number {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(212, 137, 95, 0.2);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.location-name {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  padding-right: 2rem;
+}
+
+.location-preview {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Location Detail View */
+.location-view {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.location-hero {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.location-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.location-context {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.location-memory {
+  background: rgba(212, 137, 95, 0.06);
+  border-left: 4px solid var(--accent);
+  padding: 1.25rem;
+  border-radius: 0 8px 8px 0;
+  line-height: 1.7;
+  text-align: left;
+  color: var(--text);
+}
+
+/* Navigation */
+.nav-controls {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+  touch-action: manipulation;
+}
+
+.nav-btn {
+  padding: 0.875rem 1.75rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-btn:hover:not(:disabled) {
+  border-color: var(--accent-bright);
+  background: rgba(244, 164, 96, 0.08);
+}
+
+.nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Swipe Indicator */
+.swipe-hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  opacity: 0.6;
+}
+
+/* Loading State */
+.loading {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+}
+
+.loading-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* Mobile Optimizations */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem 1rem;
+  }
+  
+  .universe-title {
+    font-size: 1.75rem;
+  }
+  
+  .palaces-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .locations-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-controls {
+    flex-direction: column;
+  }
+  
+  .nav-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .location-hero {
+    padding: 1.5rem;
+  }
+  
+  .location-title {
+    font-size: 1.5rem;
+  }
+}
+
+/* Edit Mode */
+.edit-btn {
+  background: rgba(212, 137, 95, 0.1);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-top: 1rem;
+}
+
+.edit-btn:hover {
+  background: rgba(212, 137, 95, 0.2);
+  transform: translateY(-1px);
+}
+
+textarea.edit-memory {
+  width: 100%;
+  min-height: 120px;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  resize: vertical;
+  margin-top: 1rem;
+}
+
+textarea.edit-memory:focus {
+  outline: none;
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.edit-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, var(--accent), var(--accent-bright));
+  color: var(--text);
+  border: none;
+  padding: 0.65rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(212, 137, 95, 0.4);
+}
+
+.btn-cancel {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  padding: 0.65rem 1.5rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Search Bar */
+.search-container {
+  position: relative;
+  margin-bottom: 2rem;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.search-input {
+  width: 100%;
+  padding: 1rem 1rem 1rem 3rem;
+  background: var(--card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 1.2rem;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.icon-btn {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-size: 1.1rem;
+}
+
+.icon-btn:hover {
+  background: var(--card-hover);
+  border-color: var(--accent-bright);
+  transform: translateY(-2px);
+}
+
+/* Touch feedback */
+@media (hover: none) {
+  .palace-card:active,
+  .location-card:active,
+  .nav-btn:active {
+    transform: scale(0.98);
+  }
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="logo">🏛️ MEMORY PALACE</div>
+  <div class="action-buttons">
+    <button class="icon-btn" onclick="app.showSearch()" title="Search">🔍</button>
+    <button class="icon-btn" onclick="app.exportData()" title="Export Data">💾</button>
+    <button class="icon-btn" onclick="app.showHelp()" title="Help">❓</button>
+  </div>
+  <div class="breadcrumb" id="breadcrumb"></div>
+</header>
+
+<main class="container" id="app">
+  <div class="loading">
+    <div class="loading-icon">⏳</div>
+    <div>Loading your memory palace...</div>
+  </div>
+</main>
+
+<script>
+// MEMORY PALACE DATA
+const PALACES = {
+  edinburgh: {
+    id: 'edinburgh',
+    name: 'Edinburgh',
+    icon: '🏔️',
+    description: 'Personal Mastery & Discipline',
+    locations: [
+      { name: "Arthur's Seat", memory: "Get Up Early: Waking up early sets the tone for the day, allowing you to get a head start and accomplish tasks without distractions." },
+      { name: "Palace Car Park", memory: "Exercise Daily: Physical fitness is crucial for maintaining mental and physical health, enhancing discipline, and building resilience." },
+      { name: "Holyrood Palace", memory: "Set Goals: Clearly defined goals provide direction and purpose. Break them down into smaller, manageable tasks and tackle them systematically." },
+      { name: "Royal Mile", memory: "Prioritize and Execute: Identify the most critical tasks and focus on them first. Avoid getting overwhelmed by tackling one thing at a time." },
+      { name: "Radisson", memory: "Practice Self-Discipline: Cultivate the habit of doing what needs to be done, even when you don't feel like it. Consistent effort leads to success." },
+      { name: "Edinburgh Castle", memory: "Embrace the Suck: Accept that challenges and hardships are part of the journey. Embrace them as opportunities to grow stronger." },
+      { name: "Camera Obscura", memory: "Stay Humble: Recognize your weaknesses and continuously seek improvement. Learn from others and remain open to feedback." },
+      { name: "Stairs", memory: "Be Prepared: Always be ready for unexpected challenges. Train and prepare yourself mentally and physically to handle adversity." },
+      { name: "Coffee Shop", memory: "Take Ownership: Accept responsibility for your actions and outcomes. Blaming others or external factors undermines your ability to improve and succeed." },
+      { name: "Waverley Station", memory: "Lead by Example: Demonstrate discipline and dedication in your actions to inspire and motivate others around you." }
+    ]
+  },
+  
+  northBerwick: {
+    id: 'northBerwick',
+    name: 'North Berwick',
+    icon: '🌊',
+    description: 'Visualization & Creative Techniques',
+    locations: [
+      { name: "Belhaven Breakfast", memory: "Find a Quiet Space: Create a peaceful environment free from distractions to focus your mind." },
+      { name: "Putting Green", memory: "Relaxation Techniques: Use deep breathing and progressive muscle relaxation to enter a calm state." },
+      { name: "Beach", memory: "Identify Your Goal: Clearly define what you want to visualize and achieve." },
+      { name: "Harbour", memory: "Set the Scene: Imagine yourself in the environment where your goal takes place." },
+      { name: "Dino's Fish & Chips", memory: "Visualize the Starting Point: See yourself beginning the journey toward your goal." },
+      { name: "Park", memory: "Engage All Senses: Feel, hear, smell, taste, and see every detail of your visualization." },
+      { name: "Jobbo Mart Coffee", memory: "Develop the Narrative: Create a story that unfolds naturally toward your desired outcome." },
+      { name: "Car Park", memory: "Include Emotional Elements: Feel the emotions of success, joy, and accomplishment." },
+      { name: "The Law", memory: "Visualize the Outcome: Clearly see yourself achieving your goal in vivid detail." },
+      { name: "The Lodge", memory: "Repetition: Practice your visualization regularly to reinforce neural pathways." }
+    ]
+  },
+  
+  journeyToScotland: {
+    id: 'journeyToScotland',
+    name: 'Journey to Scotland',
+    icon: '🛤️',
+    description: 'Your Scottish Adventure Path',
+    locations: [
+      { name: "Ceadar Café", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Morrisons", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Salmon Farm", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bass Rock", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Madonna", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Belly Bumpers", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Tam bides here", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The Law", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Swimming baths", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pool", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Jacuzi", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Road", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Caravan site tractors", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Lodge", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Carpark", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Path", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Charity shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bric a Brack", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Art gallery", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bathroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Putting Green", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  caravanVillage: {
+    id: 'caravanVillage',
+    name: 'Caravan Village',
+    icon: '🏕️',
+    description: 'The Village Journey',
+    locations: [
+      { name: "Caravan", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Caravan Decking", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Table", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kettle", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cooker", memory: "Add your memory here - click edit to customize this location." },
+      { name: "WC", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Shower", memory: "Add your memory here - click edit to customize this location." },
+      { name: "My Room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Mams Room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Gate", memory: "Add your memory here - click edit to customize this location." },
+      { name: "House", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bridge", memory: "Add your memory here - click edit to customize this location." },
+      { name: "River", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cottage", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Field", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Little Park", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Chatter Box", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Table", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Toilet", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Church front", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Grave Yard", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Gate", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Road", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Ponies", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Farm House", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Corner", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bridge", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Park", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pub", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Defib", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Car Park", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Shops", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Castle", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Fossil Tree", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bakers", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Co-op", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pub", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Train Tracks", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  newcastle: {
+    id: 'newcastle',
+    name: 'Newcastle',
+    icon: '🏙️',
+    description: 'City Landmarks & Culture',
+    locations: [
+      { name: "St James Park", memory: "Add your memory here - click edit to customize this location." },
+      { name: "China town arch", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Mops", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The gate", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The ocean", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Tiger tiger", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Central station", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Centre for life", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Casino", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Arena", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Millennium eye bridge", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Baltic flower mill", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sage carpark", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sage", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Car hire", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sainsbury's", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Horse field", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Church", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Race track", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  ouston: {
+    id: 'ouston',
+    name: 'Ouston',
+    icon: '🏘️',
+    description: 'Family Homes & Neighborhood',
+    locations: [
+      { name: "Roundabout", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Drive", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Stair lift", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bathroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Dad's room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Spare room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Grannys room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Toilet", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Office", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Garden pond", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kyle's room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Spare room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Carl's room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Parents room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sheila's shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Mam's house", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Porch", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bathroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "My room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Mam's room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Spare room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Dinning room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Wash house", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cooks corner", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Grandma's house garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Stairs", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Grandma's room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Spare room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bathroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "My room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Front garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Community centre", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Ouston junior school", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The hill", memory: "Add your memory here - click edit to customize this location." },
+      { name: "St bennets", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pizza shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Club", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Newsagent", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pelton Infants", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Co-op", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Community centre", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Elliene & Henrys House", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sonias hair", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pelton lodge carpark", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Dinning room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sitting area", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Grandma's room", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  chesterLeStreet: {
+    id: 'chesterLeStreet',
+    name: 'Chester-le-Street',
+    icon: '🏫',
+    description: 'School, Town & Social Life',
+    locations: [
+      { name: "Ross P's house", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Games room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The green", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Health centre", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Neil's back garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Hermitage lane", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Mr ledwarè's class", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Drama room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "History room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Toilets", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Art", memory: "Add your memory here - click edit to customize this location." },
+      { name: "LRB", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Mrs Pearsons room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Keyboard room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Computer room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "DT form room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Woodwork room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Goldfish bowl", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Geography room miss cradock", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Other geography room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "English room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "PE main hall", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Boys changing rooms", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Showers", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Gym", memory: "Add your memory here - click edit to customize this location." },
+      { name: "All weather pitch", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Football pitch 1", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Football pitch 2", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Football pitch 3", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Maths 1", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Maths 2", memory: "Add your memory here - click edit to customize this location." },
+      { name: "RE1", memory: "Add your memory here - click edit to customize this location." },
+      { name: "RE2", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Common room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "White hills", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Chicago rock cafè restaurant", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Dance floor", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bar", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Chester cricket club", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Huxters", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Market tavern", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Dentist", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Tesco", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Tesco carpark", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Chester community centre cafe", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Drama room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Auditorium", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  journeyToDurham: {
+    id: 'journeyToDurham',
+    name: 'Journey to Durham',
+    icon: '🚂',
+    description: 'The Route to Durham City',
+    locations: [
+      { name: "Fence houses pub", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Leisure centre", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pool carpark", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Shower", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pool", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Diving board", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Medical centre", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pub", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Netto", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Barbour", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Morrison's carpark", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Escalator", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Church", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Frans house living room1", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Living room2", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bar", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Frans room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cinema", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Parents room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Daniella's room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Spare room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Doms room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Loft room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Angel of the North", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Garage", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Lumley castle", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cricket ground", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Model shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Chester moor", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Boxing club", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Church mouse", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Garden centre", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Arnison centre McDonald's", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sainsbury's", memory: "Add your memory here - click edit to customize this location." },
+      { name: "New college", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Hospital", memory: "Add your memory here - click edit to customize this location." },
+      { name: "City hall", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Roundabout", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bridge", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Gala theatre", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Hotel", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Prison", memory: "Add your memory here - click edit to customize this location." },
+      { name: "HMRC", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Library", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Test centre", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bridge", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Zebra Crossing", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cathedral rose window", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Courtyard", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Backroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Main room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Green", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Castle", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cobbled street", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Wetherspoons", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Waterstones", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Silver shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cafe downstairs", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cafe upstairs", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Fish & chips shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Market square", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Indoor market", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Tobacco shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pizza hut", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bridge", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bus station", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Roundabout", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Train station carpark", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Station", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Platform", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Quiet coach", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Darlington", memory: "Add your memory here - click edit to customize this location." },
+      { name: "York", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  london: {
+    id: 'london',
+    name: 'London',
+    icon: '🎡',
+    description: 'The Capital City Experience',
+    locations: [
+      { name: "London st Pancras", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Nandos", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Welcome centre", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Warren street station", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cafe Nero", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Centre point", memory: "Add your memory here - click edit to customize this location." },
+      { name: "East street cafe", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Oxford circus cross roads", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Apple store", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Nescafè shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Piccadilly circus bill boards", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Whole foods", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cafe Zedel cafè", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Crazy cocks stage", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Toilets", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Dinning room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cocktail bar", memory: "Add your memory here - click edit to customize this location." },
+      { name: "M&Ms shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The W bar", memory: "Add your memory here - click edit to customize this location." },
+      { name: "China Town", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pattisarie Vallerie", memory: "Add your memory here - click edit to customize this location." },
+      { name: "TK Max", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Covent garden tube", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Flower building", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Apple shop downstairs", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Glass staircase", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Upstairs area", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Royal opera house rotating door", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Royal opera house cafè", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Flat iorn cov garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Nandos cov garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "St martin-in-the-fields", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Meditation room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The Crypt", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Trafalgar square fountains", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Charing cross station", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Gordon's wine bar", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Southbank centre cafe", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Skylon cocktail bar", memory: "Add your memory here - click edit to customize this location." },
+      { name: "BFI", memory: "Add your memory here - click edit to customize this location." },
+      { name: "National theatre", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The globe reception", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The globe book shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The globe swan bar", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The globe pits", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The cheese shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Borough Market", memory: "Add your memory here - click edit to customize this location." },
+      { name: "London Bridge train station", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Big Ben", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Parliament Square", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Scotland office reception", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Secretary's office", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Assistants Office", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Loadout area", memory: "Add your memory here - click edit to customize this location." },
+      { name: "All weather pitch", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The mall", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Buckingham Palace", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Green Park green screen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Road", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Hyde Park corner", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Serpentine Cafe", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The serpentine", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Albert Memorial", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Royal Albert Hall corridos", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Auditorium", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Stage", memory: "Add your memory here - click edit to customize this location." },
+      { name: "V&A museum Chandelier", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Science Museum dinosaur", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Coffee shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Snowflake", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pokey", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Dojo reception", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Tv Room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Small dojo", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Changing rooms", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Showers", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sauna", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Toilets", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Big dojo", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Westbourne park station", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pub", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Upstairs", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Beer garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "The metropolitan upstairs", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Downstairs", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Beer garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Lebanese restaurant", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Co-op", memory: "Add your memory here - click edit to customize this location." },
+      { name: "TR garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Circle garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "LS playground", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Burberry playground", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Toilets", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Piccadilly class", memory: "Add your memory here - click edit to customize this location." },
+      { name: "LS food tech", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Staff room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Jungle Class", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Meeting room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Nurse room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Toilets shower", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Blue playground", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Main hall", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Desert class", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Andy B's office", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pam's office", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Art room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Music room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Common room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Work room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Balcony", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Training room 1", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Training room 2", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Front carpark", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kennet west reception", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Downstairs room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Upstairs big room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Staff room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Computer room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Wrap shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sainsbury's", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Louise air bnb stair", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bedroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bathroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pub", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Coffee shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Market place", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Outside kings cross", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Trains", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Main Indoor Space", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Starbucks", memory: "Add your memory here - click edit to customize this location." },
+      { name: "M&S", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Paperchase", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Flower stall", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pret", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bird Cage", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Granger & Co.", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Nike", memory: "Add your memory here - click edit to customize this location." },
+      { name: "And other stories", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Canal Bridge", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Water feature", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Caravan", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kings Cross International", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Main Space", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Eurostar", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Upper crust", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Piano", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Arches", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Coffee Shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bureu De Change", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Travel Lodge 1", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Reception", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Lifts", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Meat Licker", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Scarler", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Flat Iorn", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Blacksheep", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pauline Quirk", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Honest Burger", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Road", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Travel Lodge2", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Reception", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bar", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Lifts(Travel lodge2)", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Corridoor", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "3 Beacon Hill - Drive", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Hill martin tandoori", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Church", memory: "Add your memory here - click edit to customize this location." },
+      { name: "College", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Odeon", memory: "Add your memory here - click edit to customize this location." },
+      { name: "B&Q", memory: "Add your memory here - click edit to customize this location." },
+      { name: "£1 Shop", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Iceland", memory: "Add your memory here - click edit to customize this location." },
+      { name: "M&S", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Morrisons", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Selbys", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Argos", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Waitrose", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Weatherspoons", memory: "Add your memory here - click edit to customize this location." },
+      { name: "F45", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bridge", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Holloyway road tube station", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Nandos", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pret", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Piebury Corner", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bird", memory: "Add your memory here - click edit to customize this location." },
+      { name: "H&Islington station", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Islington town hall", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sampler", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Raw food café", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Le Mercury", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Ottolenghi", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Electric Cinema", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Green", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Byron burger", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Oldroyd", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pub", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Angel Tube", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Scribler", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Muji", memory: "Add your memory here - click edit to customize this location." },
+      { name: "L'Octane", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Paperchase", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Tiger", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Vue", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sainsburys", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Snappy Snaps", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Jamies Italian", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pure Gym", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sadlers Wells Theatre", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Rosebury House reception", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Staircase", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Oak room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Lizzies House", memory: "Add your memory here - click edit to customize this location." },
+      { name: "American Diner", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Beer Restaurant", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Caravan", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Oldstreet Station", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Ramp", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  ubud: {
+    id: 'ubud',
+    name: 'Ubud',
+    icon: '🌴',
+    description: 'Bali Wellness & Yoga Retreat',
+    locations: [
+      { name: "Arma Hotel reception", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Thai restaurant", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Yoga studio", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pool", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Corridor", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Sink", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Toilet", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Shower", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bedroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "balcony", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Yoga barn reception", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Cafe", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Ariel studio", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Shamanic studio", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Upstairs studio", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  canggu: {
+    id: 'canggu',
+    name: 'Canggu',
+    icon: '🏄',
+    description: 'Bali Beach & Surf Town',
+    locations: [
+      { name: "Sense reception", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Roof bar", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Flower corridor", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bathroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bed", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Balcony", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pool area", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Echo reception", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Pool", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bathroom", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  lousHouse: {
+    id: 'lousHouse',
+    name: "Lou's House",
+    icon: '🏡',
+    description: 'Home Sweet Home',
+    locations: [
+      { name: "Garage", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Louise bedroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Decking", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Landing", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Spare room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Bathroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Our room", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  grandmaChrisHouse: {
+    id: 'grandmaChrisHouse',
+    name: "Grandma Chris House",
+    icon: '👵',
+    description: 'Family Memories',
+    locations: [
+      { name: "Grandma Chris house", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Spare room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Chris room", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  middlePark: {
+    id: 'middlePark',
+    name: "Middle Park",
+    icon: '🌳',
+    description: 'Melbourne Neighborhood',
+    locations: [
+      { name: "Thai Restaurant", memory: "Add your memory here - click edit to customize this location." },
+      { name: "Alyce House Garden", memory: "Add your memory here - click edit to customize this location." },
+      { name: "kitchen", memory: "Add your memory here - click edit to customize this location." },
+      { name: "bathroom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "alyce room", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  },
+  
+  patsPenthouse: {
+    id: 'patsPenthouse',
+    name: "Pat's Penthouse",
+    icon: '🏢',
+    description: 'City Living',
+    locations: [
+      { name: "Pat's house master broom", memory: "Add your memory here - click edit to customize this location." },
+      { name: "pats room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "office", memory: "Add your memory here - click edit to customize this location." },
+      { name: "living room", memory: "Add your memory here - click edit to customize this location." },
+      { name: "kitchen", memory: "Add your memory here - click edit to customize this location." }
+    ]
+  }
+};
+
+// APP STATE
+class MemoryPalace {
+  constructor() {
+    this.state = {
+      view: 'universe',
+      currentPalace: null,
+      currentLocationIndex: 0,
+      isEditing: false
+    };
+    
+    this.touchStartX = 0;
+    this.touchEndX = 0;
+    
+    // Load custom data from localStorage
+    this.loadCustomData();
+    
+    this.init();
+  }
+  
+  loadCustomData() {
+    const saved = localStorage.getItem('memoryPalaceData');
+    if (saved) {
+      try {
+        const customData = JSON.parse(saved);
+        // Merge custom data with default PALACES
+        Object.keys(customData).forEach(palaceId => {
+          if (PALACES[palaceId]) {
+            // Update description if saved
+            if (customData[palaceId].description) {
+              PALACES[palaceId].description = customData[palaceId].description;
+            }
+            // Update location memories
+            customData[palaceId].locations.forEach((customLoc, index) => {
+              if (PALACES[palaceId].locations[index]) {
+                PALACES[palaceId].locations[index].memory = customLoc.memory;
+              }
+            });
+          }
+        });
+      } catch (e) {
+        console.error('Error loading custom data:', e);
+      }
+    }
+  }
+  
+  saveCustomData() {
+    localStorage.setItem('memoryPalaceData', JSON.stringify(PALACES));
+  }
+  
+  toggleEdit() {
+    this.state.isEditing = !this.state.isEditing;
+    this.render();
+  }
+  
+  saveMemory(palaceId, locationIndex, newMemory) {
+    if (PALACES[palaceId] && PALACES[palaceId].locations[locationIndex]) {
+      PALACES[palaceId].locations[locationIndex].memory = newMemory;
+      this.saveCustomData();
+      this.state.isEditing = false;
+      this.render();
+    }
+  }
+  
+  cancelEdit() {
+    this.state.isEditing = false;
+    this.render();
+  }
+  
+  savePalaceCategory(palaceId, newCategory) {
+    if (PALACES[palaceId]) {
+      PALACES[palaceId].description = newCategory;
+      this.saveCustomData();
+      this.render();
+    }
+  }
+  
+  showSearch() {
+    this.state.view = 'search';
+    this.state.searchQuery = '';
+    this.render();
+    setTimeout(() => document.getElementById('searchInput')?.focus(), 100);
+  }
+  
+  performSearch(query) {
+    this.state.searchQuery = query;
+    this.render();
+  }
+  
+  exportData() {
+    const dataStr = JSON.stringify(PALACES, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `memory-palace-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+  
+  showHelp() {
+    alert('🏛️ Memory Palace - Quantum Edition\\n\\n' +
+          '✨ Features:\\n' +
+          '• Edit any memory by clicking the edit button\\n' +
+          '• Swipe left/right on mobile to navigate\\n' +
+          '• Search across all palaces and memories\\n' +
+          '• Export your data for backup\\n' +
+          '• All changes auto-save to your browser\\n\\n' +
+          '💡 Tip: Use this to memorize anything using the Method of Loci!');
+  }
+  
+  init() {
+    this.setupSwipeListeners();
+    this.setupKeyboardShortcuts();
+    this.render();
+  }
+  
+  setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      // Don't trigger shortcuts when typing in inputs
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      
+      switch(e.key) {
+        case 'ArrowLeft':
+          if (this.state.view === 'location') {
+            e.preventDefault();
+            this.navigatePrev();
+          }
+          break;
+        case 'ArrowRight':
+          if (this.state.view === 'location') {
+            e.preventDefault();
+            this.navigateNext();
+          }
+          break;
+        case 'Escape':
+          if (this.state.view === 'location') {
+            this.navigateTo('palace', this.state.currentPalace);
+          } else if (this.state.view === 'palace' || this.state.view === 'search') {
+            this.navigateTo('universe');
+          }
+          break;
+        case '/':
+          e.preventDefault();
+          this.showSearch();
+          break;
+        case 'e':
+          if (this.state.view === 'location' && !this.state.isEditing) {
+            e.preventDefault();
+            this.toggleEdit();
+          }
+          break;
+      }
+    });
+  }
+  
+  setupSwipeListeners() {
+    const app = document.getElementById('app');
+    
+    app.addEventListener('touchstart', (e) => {
+      this.touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    
+    app.addEventListener('touchend', (e) => {
+      this.touchEndX = e.changedTouches[0].screenX;
+      this.handleSwipe();
+    }, { passive: true });
+  }
+  
+  handleSwipe() {
+    const diff = this.touchStartX - this.touchEndX;
+    const threshold = 50;
+    
+    if (Math.abs(diff) > threshold && this.state.view === 'location') {
+      if (diff > 0) {
+        // Swipe left - next
+        this.navigateNext();
+      } else {
+        // Swipe right - previous
+        this.navigatePrev();
+      }
+    }
+  }
+  
+  navigateTo(view, palaceId = null, locationIndex = 0) {
+    this.state = { view, currentPalace: palaceId, currentLocationIndex: locationIndex };
+    this.render();
+  }
+  
+  navigateNext() {
+    if (!this.state.currentPalace) return;
+    const palace = PALACES[this.state.currentPalace];
+    if (this.state.currentLocationIndex < palace.locations.length - 1) {
+      this.state.currentLocationIndex++;
+      this.render();
+    }
+  }
+  
+  navigatePrev() {
+    if (this.state.currentLocationIndex > 0) {
+      this.state.currentLocationIndex--;
+      this.render();
+    }
+  }
+  
+  updateBreadcrumb() {
+    const breadcrumb = document.getElementById('breadcrumb');
+    
+    if (this.state.view === 'universe') {
+      breadcrumb.innerHTML = '<span>All Palaces</span>';
+    } else if (this.state.view === 'search') {
+      breadcrumb.innerHTML = `
+        <span class="breadcrumb-link" onclick="app.navigateTo('universe')">All Palaces</span>
+        <span>→</span>
+        <span>🔍 Search</span>
+      `;
+    } else if (this.state.view === 'palace') {
+      const palace = PALACES[this.state.currentPalace];
+      breadcrumb.innerHTML = `
+        <span class="breadcrumb-link" onclick="app.navigateTo('universe')">All Palaces</span>
+        <span>→</span>
+        <span>${palace.icon} ${palace.name}</span>
+      `;
+    } else if (this.state.view === 'location') {
+      const palace = PALACES[this.state.currentPalace];
+      const location = palace.locations[this.state.currentLocationIndex];
+      breadcrumb.innerHTML = `
+        <span class="breadcrumb-link" onclick="app.navigateTo('universe')">All Palaces</span>
+        <span>→</span>
+        <span class="breadcrumb-link" onclick="app.navigateTo('palace', '${palace.id}')">${palace.icon} ${palace.name}</span>
+        <span>→</span>
+        <span>${location.name}</span>
+      `;
+    }
+  }
+  
+  render() {
+    this.updateBreadcrumb();
+    const app = document.getElementById('app');
+    
+    if (this.state.view === 'universe') {
+      app.innerHTML = this.renderUniverse();
+    } else if (this.state.view === 'search') {
+      app.innerHTML = this.renderSearch();
+    } else if (this.state.view === 'palace') {
+      app.innerHTML = this.renderPalace();
+    } else if (this.state.view === 'location') {
+      app.innerHTML = this.renderLocation();
+    }
+  }
+  
+  renderSearch() {
+    const query = (this.state.searchQuery || '').toLowerCase();
+    let results = [];
+    
+    if (query.length >= 2) {
+      Object.values(PALACES).forEach(palace => {
+        palace.locations.forEach((location, index) => {
+          if (location.name.toLowerCase().includes(query) || 
+              location.memory.toLowerCase().includes(query)) {
+            results.push({
+              palace,
+              location,
+              locationIndex: index
+            });
+          }
+        });
+      });
+    }
+    
+    const resultsHTML = results.length > 0 ? results.map(r => `
+      <div class="location-card" onclick="app.navigateTo('location', '${r.palace.id}', ${r.locationIndex})">
+        <div class="location-number">${r.locationIndex + 1}</div>
+        <div style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 0.25rem;">
+          ${r.palace.icon} ${r.palace.name}
+        </div>
+        <div class="location-name">${r.location.name}</div>
+        <div class="location-preview">${r.location.memory.substring(0, 100)}...</div>
+      </div>
+    `).join('') : (query.length >= 2 ? '<p style="text-align: center; color: var(--text-muted); padding: 3rem;">No results found</p>' : '');
+    
+    return `
+      <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          class="search-input" 
+          id="searchInput"
+          placeholder="Search memories, locations, palaces..."
+          value="${this.state.searchQuery || ''}"
+          oninput="app.performSearch(this.value)"
+        />
+      </div>
+      ${query.length >= 2 ? `
+        <h2 style="margin-bottom: 1.5rem; color: var(--text-muted); font-size: 1rem;">
+          Found ${results.length} result${results.length !== 1 ? 's' : ''}
+        </h2>
+        <div class="locations-grid">${resultsHTML}</div>
+      ` : `
+        <div style="text-align: center; padding: 3rem; color: var(--text-muted);">
+          <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+          <p>Start typing to search across all your memories...</p>
+        </div>
+      `}
+    `;
+  }
+  
+  renderUniverse() {
+    const palaceCards = Object.values(PALACES).map(palace => `
+      <div class="palace-card">
+        <span class="palace-icon">${palace.icon}</span>
+        <div class="palace-name">${palace.name}</div>
+        <input 
+          type="text" 
+          class="category-input" 
+          placeholder="Enter category (e.g., History, Languages, etc.)"
+          value="${palace.description}"
+          onchange="app.savePalaceCategory('${palace.id}', this.value)"
+          onclick="event.stopPropagation()"
+        />
+        <button class="btn-enter-palace" onclick="app.navigateTo('palace', '${palace.id}')">
+          Enter Palace →
+        </button>
+        <div class="palace-stats">
+          <span>📍 ${palace.locations.length} locations</span>
+        </div>
+      </div>
+    `).join('');
+    
+    return `
+      <h1 class="universe-title">Your Memory Palaces</h1>
+      <p class="universe-subtitle">${Object.keys(PALACES).length} palaces ready to explore</p>
+      <div class="palaces-grid">${palaceCards}</div>
+    `;
+  }
+  
+  renderPalace() {
+    const palace = PALACES[this.state.currentPalace];
+    const locationCards = palace.locations.map((location, index) => `
+      <div class="location-card" onclick="app.navigateTo('location', '${palace.id}', ${index})">
+        <div class="location-number">${index + 1}</div>
+        <div class="location-name">${location.name}</div>
+        <div class="location-preview">${location.memory.substring(0, 80)}...</div>
+      </div>
+    `).join('');
+    
+    return `
+      <div class="palace-header">
+        <div class="palace-header-icon">${palace.icon}</div>
+        <h1 class="palace-header-title">${palace.name}</h1>
+        <p class="palace-header-meta">${palace.description} • ${palace.locations.length} locations</p>
+      </div>
+      <div class="locations-grid">${locationCards}</div>
+    `;
+  }
+  
+  renderLocation() {
+    const palace = PALACES[this.state.currentPalace];
+    const location = palace.locations[this.state.currentLocationIndex];
+    const canPrev = this.state.currentLocationIndex > 0;
+    const canNext = this.state.currentLocationIndex < palace.locations.length - 1;
+    
+    if (this.state.isEditing) {
+      return `
+        <div class="location-view">
+          <div class="location-hero">
+            <h1 class="location-title">${location.name}</h1>
+            <p class="location-context">${palace.name} • Location ${this.state.currentLocationIndex + 1} of ${palace.locations.length}</p>
+            <p style="color: var(--text-muted); margin-top: 1rem; font-size: 0.9rem;">✏️ Edit the memory content below:</p>
+            <textarea class="edit-memory" id="memoryEditor">${location.memory}</textarea>
+            <div class="edit-actions">
+              <button class="btn-cancel" onclick="app.cancelEdit()">Cancel</button>
+              <button class="btn-save" onclick="app.saveMemory('${palace.id}', ${this.state.currentLocationIndex}, document.getElementById('memoryEditor').value)">💾 Save Changes</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    return `
+      <div class="location-view">
+        <div class="location-hero">
+          <h1 class="location-title">${location.name}</h1>
+          <p class="location-context">${palace.name} • Location ${this.state.currentLocationIndex + 1} of ${palace.locations.length}</p>
+          <div class="location-memory">${location.memory}</div>
+          <button class="edit-btn" onclick="app.toggleEdit()">✏️ Edit Memory</button>
+        </div>
+        
+        <div class="nav-controls">
+          <button class="nav-btn" ${!canPrev ? 'disabled' : ''} onclick="app.navigatePrev()">
+            ← Previous
+          </button>
+          <button class="nav-btn" onclick="app.navigateTo('palace', '${palace.id}')">
+            📍 All Locations
+          </button>
+          <button class="nav-btn" ${!canNext ? 'disabled' : ''} onclick="app.navigateNext()">
+            Next →
+          </button>
+        </div>
+        
+        <div class="swipe-hint">💡 Swipe left/right on mobile to navigate</div>
+      </div>
+    `;
+  }
+}
+
+// Initialize app
+const app = new MemoryPalace();
+</script>
+
+</body>
+</html>
